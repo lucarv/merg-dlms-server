@@ -21,7 +21,7 @@ function printDeviceInfo(err, deviceInfo, res) {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.render('index', { title: 'DLMS Provisioning App Back End' });
+  res.render('index', { title: 'DLMS Provisioning Back End' });
 });
 
 router.post('/', function (req, res, next) {
