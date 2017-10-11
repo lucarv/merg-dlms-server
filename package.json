@@ -10,10 +10,14 @@
     "azure-iot-device-mqtt": "^1.1.18",
     "azure-iothub": "^1.1.16",
     "body-parser": "~1.17.1",
+    "bunyan": "^1.8.12",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.3",
     "express": "~4.15.2",
+    "jsonfile": "^4.0.0",
     "morgan": "~1.8.1",
+    "passport": "^0.4.0",
+    "passport-azure-ad": "^3.0.8",
     "pug": "^2.0.0-rc.4",
     "serve-favicon": "~2.4.2"
   }
