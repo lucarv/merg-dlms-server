@@ -1,0 +1,35 @@
+extends layout
+
+block content                       
+        .panel.panel-default
+            .panel-heading Agent Management
+            .panel-body    
+                form(action='/agent', method='post')
+                    fieldset
+                        .form-group.row
+                            .col-xs-6    
+                                input.form-control(type='text', name='agentId', placeholder='agent id') 
+                            .col-xs-6  
+                                input.form-control(type="tel" name='msdn', placeholder='+ XX XX XXX XXXX') 
+                        .form-group.row
+                            .col-xs-12    
+                                input.form-control(type='text', name='name', placeholder='agent name') 
+                               
+                        .form-group.row
+                           .col-sm-2
+                                button.btn.btn-primary(type='submit') create new
+        .panel.panel-default
+            .panel-heading Properties
+            .panel-body    
+                table.table.table-hover.table-bordered
+                    thead
+                        tr
+                            th Agent Id Name
+                            th Agent Phone Number
+                            th Agent Phone Name
+                    tbody
+                        each agent in agents
+                            tr
+                                td= agent.agentId 
+                                td= agent.msdn  
+                                td= agent.name  

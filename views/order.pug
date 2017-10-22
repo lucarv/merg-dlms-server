@@ -1,0 +1,35 @@
+extends layout
+
+block content 
+        .panel.panel-default
+            .panel-heading Order Management
+            .panel-body    
+                form(action='/order_mgmt', method='post')
+                    fieldset
+                        .form-group.row
+                            .col-xs-6    
+                                input.form-control(type='number', name='agentId', placeholder='agent id') 
+                            .col-xs-6  
+                                input.form-control(type="number" name='orderId', placeholder='order id') 
+                        .form-group.row
+                            .col-xs-12 
+                                input.form-control(type="text" name='orderSummary', placeholder='enter order details') 
+                        .form-group.row
+                           .col-sm-2
+                                button.btn.btn-primary(type='submit') create new
+        .panel.panel-default
+            .panel-heading Properties
+            .panel-body    
+                table.table.table-hover.table-bordered
+                    thead.thead-inverse
+                        tr
+                            th Agent Id                        
+                            th Order Id 
+                            th Order Summary
+                    tbody
+                        each order in orders
+                            tr
+                                td= order.agentId 
+                                td= order.orderId 
+                                td= order.orderSummary  
+        

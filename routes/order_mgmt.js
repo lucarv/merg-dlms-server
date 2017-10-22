@@ -3,7 +3,9 @@ var router = express.Router();
 
 var jsonfile = require('jsonfile');
 var somFile = 'som.json';
-var orderArray = [];
+var agentFile = 'agent.json';
+
+var orderArray = [], agentArray = [];
 
 var twilio = require('twilio');
 var accountSid = 'AC32f7569dbb30616afb3189b17099e548'; // Your Account SID from www.twilio.com/console
@@ -29,33 +31,58 @@ jsonfile.readFile(somFile, function (err, obj) {
   }
 })
 
+jsonfile.readFile(agentFile, function (err, obj) {
+  if (err)
+    console.log(err)
+  else {
+    agentArray = obj;
+  }
+});
+
 var alertAgent = function (order) {
+  console.log(agentArray)
+  
+var i = 0;
+  while (agentArray[i].agentId !== order.agentId) {
+      console.log('i: ' + i)
+      console.log(agentArray[i].agentId)
+      i++;
+  } 
+  return 'agent ' + i;
+
+
+  /*
   client.messages.create({
     body: 'DLMS Provisioning new order ' + order.orderId +  'created ',
     to: '+46734083277',  // Text this number
     from: '+46765193249' // From a valid Twilio number
   })
     .then((message) => console.log(message.sid));
-
-  console.log('alerting agent');
-  return 'agent ' + order.agentId + ' alerted via sms';
+*/
+  //console.log('alerting agent: ' + found);
 }
 
 /* GET orders listing. */
 router.get('/', function (req, res, next) {
-  console.log(req.query.agentId);
-  var tasks = [];
-  var found = orderArray.filter(function (item) { return item.agentId === req.query.agentId; });
-  found.forEach(function (element) {
-    console.log(element.agentId)
-    tasks.push(element.orderSummary)
-  })
+  if (!req.query.agentId) {
+    console.log('web request')
+    res.render('order', { title: 'DLMS Provisioning Back End', orders: orderArray });
+  }
+  else {
+    console.log('app request')
+    console.log(req.query.agentId);
+    var tasks = [];
+    var found = orderArray.filter(function (item) { return item.agentId === req.query.agentId; });
+    found.forEach(function (element) {
+      console.log(element.agentId)
+      tasks.push(element.orderSummary)
+    })
 
-  if (tasks.length > 0)
-    res.send({ tasks });
-  else
-    res.send({ 'order': 'no order in backlog' });
-
+    if (tasks.length > 0)
+      res.send({ tasks });
+    else
+      res.send({ 'order': 'no order in backlog' });
+  }
 });
 
 /* POST service order. */
@@ -69,12 +96,12 @@ router.post('/', function (req, res, next) {
 
   jsonfile.writeFile(somFile, orderArray, function (err) {
     if (err)
-      res.send({ 'result': 'something went wrong: ' + JSON.stringify(err) });
+      res.render('error', err);
     else {
       console.log('service order written to file');
       var sms = alertAgent(order);
       console.log('agent alerting result: ' + sms)
-      res.send({ 'result': sms });
+      res.render('order', { title: 'DLMS Provisioning Back End', orders: orderArray });
     }
   })
 

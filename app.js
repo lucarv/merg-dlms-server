@@ -41,7 +41,10 @@ var log = bunyan.createLogger({
   });
 
 var index = require('./routes/index');
-var som = require('./routes/service_order');
+var order_mgmt = require('./routes/order_mgmt');
+var agent = require('./routes/agent');
+
+
 var app = express();
 
 // view engine setup
@@ -56,8 +59,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/service_order', som);
-
+app.use('/order_mgmt', order_mgmt);
+app.use('/agent', agent);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
