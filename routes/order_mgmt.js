@@ -13,21 +13,10 @@ var authToken = 'd0e1ccc59d34ca53b38bf068636c92a2';   // Your Auth Token from ww
 var client = new twilio(accountSid, authToken);
 
 jsonfile.readFile(somFile, function (err, obj) {
-  if (obj) {
+  if (err)
+    console.log(err)
+  else {
     orderArray = obj;
-    for (var i = 0; i < obj.length; i++) {
-      switch (obj[i].type) {
-        case 'system':
-          sysArray.push(obj[i]);
-          break;
-        case 'tag':
-          tagArray.push(obj[i]);
-          break;
-        case 'property':
-          propArray.push(obj[i]);
-          break;
-      }
-    }
   }
 })
 
@@ -41,40 +30,33 @@ jsonfile.readFile(agentFile, function (err, obj) {
 
 var alertAgent = function (order) {
   console.log(agentArray)
-  
-var i = 0;
+
+  var i = 0;
   while (agentArray[i].agentId !== order.agentId) {
-      console.log('i: ' + i)
-      console.log(agentArray[i].agentId)
-      i++;
-  } 
-  return 'agent ' + i;
+    console.log(agentArray[i].agentId)
+    i++;
+  }
 
-
-  /*
   client.messages.create({
     body: 'DLMS Provisioning new order ' + order.orderId +  'created ',
-    to: '+46734083277',  // Text this number
+    to: agentArray[i].msisdn,  // Text this number
     from: '+46765193249' // From a valid Twilio number
   })
     .then((message) => console.log(message.sid));
-*/
-  //console.log('alerting agent: ' + found);
 }
 
 /* GET orders listing. */
 router.get('/', function (req, res, next) {
   if (!req.query.agentId) {
-    console.log('web request')
     res.render('order', { title: 'DLMS Provisioning Back End', orders: orderArray });
   }
   else {
-    console.log('app request')
-    console.log(req.query.agentId);
     var tasks = [];
-    var found = orderArray.filter(function (item) { return item.agentId === req.query.agentId; });
+    var found = orderArray.filter(function (element) {
+      return element.agentId === req.query.agentId;
+    });
+
     found.forEach(function (element) {
-      console.log(element.agentId)
       tasks.push(element.orderSummary)
     })
 
@@ -98,9 +80,7 @@ router.post('/', function (req, res, next) {
     if (err)
       res.render('error', err);
     else {
-      console.log('service order written to file');
-      var sms = alertAgent(order);
-      console.log('agent alerting result: ' + sms)
+      alertAgent(order);
       res.render('order', { title: 'DLMS Provisioning Back End', orders: orderArray });
     }
   })

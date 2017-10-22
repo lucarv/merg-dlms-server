@@ -21,7 +21,7 @@ router.post('/', function (req, res, next) {
     var agent = {};
 
     agent['agentId'] = req.body.agentId;
-    agent['msdn'] = req.body.msdn;
+    agent['msdn'] = req.body.msisdn;
     agent['name'] = req.body.name;
 
     console.log(agentArray)

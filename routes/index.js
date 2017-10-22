@@ -9,7 +9,7 @@ var Client = require('azure-iot-device').Client;
 var Protocol = require('azure-iot-device-mqtt').Mqtt;
 
 var client;
-var hubCS = 'HostName=hankys-iot-hub.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=at9H8Piz2TEfHS9jU3YBuV8I7sXshniyXzz/h2ZOb3U='
+var hubCS = 'HostName=dlms-luca.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=Ltpaai5Vzsv12qcJfB7FMV4+1XPs4Z14qcdIsFHx6/g=  '
 var registry = iothub.Registry.fromConnectionString(hubCS);
 var hubName = hubCS.substring(0, hubCS.indexOf(';'));
 
@@ -35,11 +35,14 @@ router.post('/', function (req, res, next) {
   registry.create(device, function (err, deviceInfo, result) {
     if (err)
       registry.get(device.deviceId, printDeviceInfo);
+    
     var devKey;
     res.setHeader('Content-Type', 'application/json');
 
     if (deviceInfo) {
       devKey = deviceInfo.authentication.symmetricKey.primaryKey;
+      console.log(devKey);
+      
       var opRes = { 'result': 'meter ' + meterId + ' added to registry' }
       res.send(JSON.stringify(opRes));
     } else {
