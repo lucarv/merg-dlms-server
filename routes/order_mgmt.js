@@ -73,12 +73,15 @@ router.get('/', function (req, res, next) {
 router.post('/', function (req, res, next) {
   var order = {};
 
-  console.log(req.body)
+  console.log('BODY: ' + JSON.stringify(req.body));
+  console.log('HEADERS: ' + JSON.stringify(req.headers));
+  
 
   order['agentId'] = req.body.agentId;
   order['orderId'] = req.body.orderId;
   order['orderSummary'] = req.body.orderSummary;
   orderArray.push(order);
+  
   var alert = alertAgent(order);
   if (alert === 'found') {
     jsonfile.writeFile(somFile, orderArray, function (err) {
