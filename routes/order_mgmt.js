@@ -73,9 +73,9 @@ router.get('/', function (req, res, next) {
 router.post('/', function (req, res, next) {
   var order = {};
 
-  //console.log('BODY: ' + JSON.stringify(req.body));
+  console.log('BODY: ' + JSON.stringify(req.body));
   //console.log('HEADERS: ' + JSON.stringify(req.headers));
-  
+  console.log('agenId: ' + req.body.agentId)
 
   order['agentId'] = req.body.agentId;
   order['orderId'] = req.body.orderId;
