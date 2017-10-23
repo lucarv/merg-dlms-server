@@ -29,22 +29,25 @@ jsonfile.readFile(agentFile, function (err, obj) {
 });
 
 var alertAgent = function (order) {
-  console.log(agentArray)
-
-  var i = 0;
-  while (agentArray[i].agentId !== order.agentId) {
-    console.log(agentArray[i].agentId)
-    i++;
+  var found = null;
+  for (var i = 0; i < agentArray.length; i++) {
+    if (agentArray[i].agentId === order.agentId)
+      found = agentArray[i].msisdn
   }
+  /*
+  if (found) {
+    client.messages.create({
+      body: 'DLMS Provisioning new order ' + order.orderId + 'created ',
+      to: found,  // Text this number
+      from: '+46765193249' // From a valid Twilio number
+    })
+      .then((message) => console.log(message.sid));
+    return 'found'
+  } */
+  return 'found'
 
-  client.messages.create({
-    body: 'DLMS Provisioning new order ' + order.orderId +  'created ',
-    to: agentArray[i].msisdn,  // Text this number
-    from: '+46765193249' // From a valid Twilio number
-  })
-    .then((message) => console.log(message.sid));
+  //return 'no agent found'
 }
-
 /* GET orders listing. */
 router.get('/', function (req, res, next) {
   if (!req.query.agentId) {
@@ -75,16 +78,29 @@ router.post('/', function (req, res, next) {
   order['orderId'] = req.body.orderId;
   order['orderSummary'] = req.body.orderSummary;
   orderArray.push(order);
-
-  jsonfile.writeFile(somFile, orderArray, function (err) {
-    if (err)
-      res.render('error', err);
-    else {
-      alertAgent(order);
-      res.render('order', { title: 'DLMS Provisioning Back End', orders: orderArray });
-    }
-  })
-
+  var alert = alertAgent(order);
+  if (alert = 'found') {
+    jsonfile.writeFile(somFile, orderArray, function (err) {
+      if (err)
+        res.send(
+          {
+            'order':
+            {
+              'result': 'error',
+              'error': err
+            }
+          }
+        );
+      else
+        res.send(
+          { 
+            'order': 'success' 
+          }
+        );
+    });
+  }
+  else
+    res.send({ order: { 'result': 'error', 'error': alert } });
 
 
 });

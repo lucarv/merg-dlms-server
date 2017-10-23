@@ -30,7 +30,6 @@ router.post('/', function (req, res, next) {
   var device = {
     deviceId: meterId
   }
-  console.log('device to create: ' + JSON.stringify(device));
 
   registry.create(device, function (err, deviceInfo, result) {
     if (err)
