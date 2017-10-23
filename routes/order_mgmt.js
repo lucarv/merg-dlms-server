@@ -34,7 +34,7 @@ var alertAgent = function (order) {
     if (agentArray[i].agentId === order.agentId)
       found = agentArray[i].msisdn
   }
-  /*
+  
   if (found) {
     client.messages.create({
       body: 'DLMS Provisioning new order ' + order.orderId + 'created ',
@@ -43,10 +43,9 @@ var alertAgent = function (order) {
     })
       .then((message) => console.log(message.sid));
     return 'found'
-  } */
-  return 'found'
+  } 
 
-  //return 'no agent found'
+  return 'no agent found'
 }
 /* GET orders listing. */
 router.get('/', function (req, res, next) {
@@ -79,7 +78,7 @@ router.post('/', function (req, res, next) {
   order['orderSummary'] = req.body.orderSummary;
   orderArray.push(order);
   var alert = alertAgent(order);
-  if (alert = 'found') {
+  if (alert === 'found') {
     jsonfile.writeFile(somFile, orderArray, function (err) {
       if (err)
         res.send(
