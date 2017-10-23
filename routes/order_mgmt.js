@@ -12,6 +12,7 @@ var accountSid = 'AC32f7569dbb30616afb3189b17099e548'; // Your Account SID from 
 var authToken = 'd0e1ccc59d34ca53b38bf068636c92a2';   // Your Auth Token from www.twilio.com/console
 var client = new twilio(accountSid, authToken);
 
+
 jsonfile.readFile(somFile, function (err, obj) {
   if (err)
     console.log(err)
@@ -34,7 +35,7 @@ var alertAgent = function (order) {
     if (agentArray[i].agentId === order.agentId)
       found = agentArray[i].msisdn
   }
-  
+
   if (found) {
     client.messages.create({
       body: 'DLMS Provisioning new order ' + order.orderId + 'created ',
@@ -43,7 +44,7 @@ var alertAgent = function (order) {
     })
       .then((message) => console.log(message.sid));
     return 'found'
-  } 
+  }
 
   return 'no agent found'
 }
@@ -73,16 +74,33 @@ router.get('/', function (req, res, next) {
 router.post('/', function (req, res, next) {
   var order = {};
 
-  console.log('BODY: ' + JSON.stringify(req.body));
-  //console.log('HEADERS: ' + JSON.stringify(req.headers));
-  console.log('agenId: ' + req.body.agentId)
+  var str = JSON.stringify(req.body)
+  console.log(' <<<stringify post parsing >>>' );
+  console.log(str);
 
-  order['agentId'] = req.body.agentId;
-  order['orderId'] = req.body.orderId;
-  order['orderSummary'] = req.body.orderSummary;
-  orderArray.push(order);
-  console.log(order);
+  //regexp to 'clean' the request
+  str = str.replace(/\\/g, "");
+  str = str.replace(/{"{/g, "{");
+  str = str.replace(/":""}/g, "");
+  var cleanParams = JSON.parse(str)
+  console.log('<<<back into json>>>');
+  console.log(cleanParams.agentId);
+
   
+  order['agentId'] = cleanParams.agentId;
+  order['orderId'] = cleanParams.orderId;
+  order['orderSummary'] = cleanParams.orderSummary;
+
+  console.log(' <<<order object>>>' );
+  console.log(order);
+  /*
+ order['agentId'] = req.body.agentId;
+ order['orderId'] = req.body.orderId;
+ order['orderSummary'] = req.body.orderSummary;
+ */
+  orderArray.push(order);
+
+
   var alert = alertAgent(order);
   if (alert === 'found') {
     jsonfile.writeFile(somFile, orderArray, function (err) {
@@ -98,8 +116,8 @@ router.post('/', function (req, res, next) {
         );
       else
         res.send(
-          { 
-            'order': 'success' 
+          {
+            'order': 'success'
           }
         );
     });
@@ -107,6 +125,7 @@ router.post('/', function (req, res, next) {
   else
     res.send({ order: { 'result': 'error', 'error': alert } });
 
+  res.send('ok')
 
 });
 
