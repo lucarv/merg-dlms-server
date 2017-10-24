@@ -105,28 +105,13 @@ router.post('/', function (req, res, next) {
   if (alert === 'found') {
     jsonfile.writeFile(somFile, orderArray, function (err) {
       if (err)
-        res.send(
-          {
-            'order':
-            {
-              'result': 'error',
-              'error': err
-            }
-          }
-        );
+        res.send( {'order': {'result': 'error', 'error': err}} );
       else
-        res.send(
-          {
-            'order': 'success'
-          }
-        );
+        res.send( {'order': 'success'} );
     });
   }
   else
     res.send({ order: { 'result': 'error', 'error': alert } });
-
-  res.send('ok')
-
 });
 
 module.exports = router;
