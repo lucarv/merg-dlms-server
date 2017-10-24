@@ -83,7 +83,7 @@ router.post('/', function (req, res, next) {
   str = str.replace(/{"{/g, "{");
   str = str.replace(/":""}/g, "");
   var cleanParams = JSON.parse(str)
-  console.log('<<<back into json>>>');
+  console.log('<<< received agentId >>>');
   console.log(cleanParams.agentId);
 
   
