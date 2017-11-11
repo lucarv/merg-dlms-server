@@ -8,6 +8,16 @@ var clientFromConnectionString = require('azure-iot-device-mqtt').clientFromConn
 var Client = require('azure-iot-device').Client;
 var Protocol = require('azure-iot-device-mqtt').Mqtt;
 
+var redis = require('redis');
+var redis_client = redis.createClient(6380, 'mnrg.redis.cache.windows.net',
+  {
+    auth_pass: 'uknIuZnrJtF0lrcWyFNl5/y+NiCUOBT7hqE0PtguPXo=',
+    tls: { servername: 'mnrg.redis.cache.windows.net' }
+  });
+redis_client.on('connect', function () {
+  console.log('connected');
+});
+
 var client;
 var hubCS = 'HostName=dlms-luca.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=Ltpaai5Vzsv12qcJfB7FMV4+1XPs4Z14qcdIsFHx6/g=  '
 var registry = iothub.Registry.fromConnectionString(hubCS);
@@ -21,6 +31,9 @@ function printDeviceInfo(err, deviceInfo, res) {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
+  redis_client.del('meterId', function(err, reply) {
+    console.log(reply);
+});
   res.render('index', { title: 'DLMS Provisioning Back End' });
 });
 
@@ -34,14 +47,19 @@ router.post('/', function (req, res, next) {
   registry.create(device, function (err, deviceInfo, result) {
     if (err)
       registry.get(device.deviceId, printDeviceInfo);
-    
+
     var devKey;
     res.setHeader('Content-Type', 'application/json');
 
     if (deviceInfo) {
       devKey = deviceInfo.authentication.symmetricKey.primaryKey;
       console.log(devKey);
-      
+
+      redis_client.set(meterId, devKey, function(err, reply) {
+        console.log(reply);
+    });
+
+
       var opRes = { 'result': 'meter ' + meterId + ' added to registry' }
       res.send(JSON.stringify(opRes));
     } else {
@@ -54,10 +72,10 @@ router.post('/', function (req, res, next) {
 });
 
 router.delete('/', function (req, res, next) {
-   
+
   var meterId = req.body.meterId;
   console.log('device to delete: ' + meterId);
-  
+
   registry.delete(meterId, function (err, done) {
     console.log(err)
     res.setHeader('Content-Type', 'application/json');
@@ -71,7 +89,7 @@ router.delete('/', function (req, res, next) {
       res.send(JSON.stringify(opRes));
     }
   });
-  
+
 });
 
 module.exports = router;
