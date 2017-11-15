@@ -1,33 +1,27 @@
 'use strict';
+var config = require('../config/config');
+
 const request = require('request');
-var url = 'http://newdeviceapi20171102033605.azurewebsites.net/api/values'
+const url = config.url;
 
+const express = require('express');
+const router = express.Router();
 
-var express = require('express');
-var router = express.Router();
+// ------ AZURE SDK ------ 
+const iothub = require('azure-iothub');
+const clientFromConnectionString = require('azure-iot-device-mqtt').clientFromConnectionString;
+const Client = require('azure-iot-device').Client;
+const Protocol = require('azure-iot-device-mqtt').Mqtt;
+const hub_cs = config.hub_cs;
+const registry = iothub.Registry.fromConnectionString(hub_cs);
 
-// azure sdk
-var iothub = require('azure-iothub');
-var clientFromConnectionString = require('azure-iot-device-mqtt').clientFromConnectionString;
-var Client = require('azure-iot-device').Client;
-var Protocol = require('azure-iot-device-mqtt').Mqtt;
-
-/*
+// ------ REDIS SDK ------ 
 var redis = require('redis');
-var redis_client = redis.createClient(6380, 'mnrg.redis.cache.windows.net',
+var redis_client = redis.createClient(6380, config.redis_url,
   {
-    auth_pass: 'uknIuZnrJtF0lrcWyFNl5/y+NiCUOBT7hqE0PtguPXo=',
-    tls: { servername: 'mnrg.redis.cache.windows.net' }
+    auth_pass: config.redis_key,
+    tls: { servername: config.redis_url }
   });
-redis_client.on('connect', function () {
-  console.log('connected');
-});
-*/
-
-var client;
-var hubCS = 'HostName=dlms-luca.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=Ltpaai5Vzsv12qcJfB7FMV4+1XPs4Z14qcdIsFHx6/g='
-var registry = iothub.Registry.fromConnectionString(hubCS);
-var hubName = hubCS.substring(0, hubCS.indexOf(';'));
 
 function printDeviceInfo(err, deviceInfo, res) {
   if (deviceInfo) {
@@ -37,9 +31,6 @@ function printDeviceInfo(err, deviceInfo, res) {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  redis_client.del('meterId', function (err, reply) {
-    console.log(reply);
-  });
   res.render('index', { title: 'DLMS Provisioning Back End' });
 });
 
@@ -51,6 +42,8 @@ router.post('/', function (req, res, next) {
   }
 
   registry.create(device, function (err, deviceInfo, result) {
+    res.setHeader('Content-Type', 'application/json');
+    
     if (err)
       registry.get(device.deviceId, printDeviceInfo);
 
@@ -60,50 +53,50 @@ router.post('/', function (req, res, next) {
       devKey = deviceInfo.authentication.symmetricKey.primaryKey;
       console.log('device created, devKey: ' + devKey);
 
-      var jsonData = {
-        ID: meterId,
-        Connstr: devKey
-      }
-
-      const options = {
-        method: 'post',
-        body: jsonData,
-        json: 'true',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        url: url
-      }
-
-      
-      request(options, function (err, res, body) {
+      // save this device {id, key} to redis
+      redis_client.on('connect', function () {
+        console.log('connected to redis');
+      });
+      redis_client.set(meterId, devKey, function (err, reply) {
         if (err) {
-          console.error('error posting json: ', err)
-          throw err
+          console.log('error when writing to redis: ' + err);
+        } else {
+          console.log('wrote to redis: ' + reply);
         }
-        var headers = res.headers
-        var statusCode = res.statusCode
-        console.log('headers: ', headers)
-        console.log('statusCode: ', statusCode)
-        console.log('body: ', body)
-      })
+      });
 
-      
-      /*
-            redis_client.set(meterId, devKey, function(err, reply) {
-              console.log(reply);
-          });
-      */
-
-      var opRes = { 'result': 'meter ' + meterId + ' added to registry' }
-      res.send(JSON.stringify(opRes));
-    } else {
-      console.log('no key')
-      var opRes = { 'result': 'error', 'cause': 'something fishy happened' }
-      res.send(JSON.stringify(opRes));
+      // update DLMS proxy
+      var jsonData = {
+        "UniqueID": meterId,
+        "DeviceConnectionString": devKey,
+        "DeviceIpAddress": ""
+      }
+      var options = {
+        url: url,
+        body: JSON.stringify(jsonData),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      };
+      request(options, function (err, res, body) {
+        if (err) { //need to rollback IoT Hub Registry
+          console.log('Failed to update DLMS Proxy');
+        } else {
+          console.log('dlms proxy updated');
     }
   });
 
+  //send acknowledge to provisioning app
+  var opRes = { 'result': 'meter ' + meterId + ' added to registry' }
+  console.log(opRes)
+  res.send(JSON.stringify(opRes));
+} else { //something wrong in the attempt to register to iot hub
+    console.log('no key')
+      var opRes = { 'result': 'error', 'cause': 'something fishy happened' }
+      res.send(JSON.stringify(opRes));
+  }
+  });
 });
 
 router.delete('/', function (req, res, next) {
@@ -112,14 +105,18 @@ router.delete('/', function (req, res, next) {
   console.log('device to delete: ' + meterId);
 
   registry.delete(meterId, function (err, done) {
-    console.log(err)
     res.setHeader('Content-Type', 'application/json');
-
+    
     if (!err) {
       var opRes = { 'result': 'meter ' + meterId + ' removed from registry' }
+      // remove from redis
+      redis_client.del('meterId', function (err, reply) {
+        console.log('deleted from redis: ' + reply);
+      });
+
       res.send(JSON.stringify(opRes));
     } else {
-      console.log(err)
+      console.log('error deleting device from IoT Hub: ' + err);
       var opRes = { 'result': 'error', 'cause': 'something fishy happened' }
       res.send(JSON.stringify(opRes));
     }
