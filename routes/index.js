@@ -16,8 +16,8 @@ const hub_cs = config.hub_cs;
 const registry = iothub.Registry.fromConnectionString(hub_cs);
 
 // ------ REDIS SDK ------ 
-var redis = require('redis');
-var redis_client = redis.createClient(6380, config.redis_url,
+const redis = require('redis');
+const redis_client = redis.createClient(6380, config.redis_url,
   {
     auth_pass: config.redis_key,
     tls: { servername: config.redis_url }
