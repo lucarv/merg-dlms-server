@@ -29,6 +29,11 @@ function printDeviceInfo(err, deviceInfo, res) {
   }
 }
 
+function setDeviceCS(deviceId, key){
+    hubName = hub_cs.substring(hub_cs.indexOf('=') + 1, hub_cs.indexOf(';'));
+    var devCS = 'HostName=' + hubName + ';DeviceId=' + deviceId + ';SharedAccessKey=' + key;
+	return devCS;
+}
 /* GET home page. */
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'DLMS Provisioning Back End' });
@@ -51,13 +56,14 @@ router.post('/', function (req, res, next) {
 
     if (deviceInfo) {
       devKey = deviceInfo.authentication.symmetricKey.primaryKey;
-      console.log('device created, devKey: ' + devKey);
+	  var cs = setDeviceCS(meterId, devKey);
+      console.log('device created, devKey: ' + cs);
 
       // save this device {id, key} to redis
       redis_client.on('connect', function () {
         console.log('connected to redis');
       });
-      redis_client.set(meterId, devKey, function (err, reply) {
+      redis_client.set(meterId, cs, function (err, reply) {
         if (err) {
           console.log('error when writing to redis: ' + err);
         } else {
@@ -68,7 +74,7 @@ router.post('/', function (req, res, next) {
       // update DLMS proxy
       var jsonData = {
         "UniqueID": meterId,
-        "DeviceConnectionString": devKey,
+        "DeviceConnectionString": cs,
         "DeviceIpAddress": ""
       }
       var options = {
