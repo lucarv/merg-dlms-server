@@ -75,7 +75,7 @@ router.post('/', function (req, res, next) {
   var order = {};
 
   var str = JSON.stringify(req.body)
-  console.log(' <<<stringify post parsing >>>' );
+  console.log(' <<<stringify post parsing >>>');
   console.log(str);
 
   //regexp to 'clean' the request
@@ -86,12 +86,12 @@ router.post('/', function (req, res, next) {
   console.log('<<< received agentId >>>');
   console.log(cleanParams.agentId);
 
-  
+
   order['agentId'] = cleanParams.agentId;
   order['orderId'] = cleanParams.orderId;
   order['orderSummary'] = cleanParams.orderSummary;
 
-  console.log(' <<<order object>>>' );
+  console.log(' <<<order object>>>');
   console.log(order);
   /*
  order['agentId'] = req.body.agentId;
@@ -105,13 +105,55 @@ router.post('/', function (req, res, next) {
   if (alert === 'found') {
     jsonfile.writeFile(somFile, orderArray, function (err) {
       if (err)
-        res.send( {'order': {'result': 'error', 'error': err}} );
+        res.send({ 'order': { 'result': 'error', 'error': err } });
       else
-        res.send( {'order': 'success'} );
+        res.send({ 'order': 'success' });
     });
   }
   else
     res.send({ order: { 'result': 'error', 'error': alert } });
+});
+
+
+/* POST service order. */
+router.post('/web', function (req, res, next) {
+  var order = {};
+
+  var str = JSON.stringify(req.body)
+  console.log(' <<<stringify post parsing >>>');
+  console.log(str);
+  var ts = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+
+  order['agentId'] = req.body.agentId;
+  order['orderId'] = req.body.orderId;
+  order['orderSummary'] = req.body.orderSummary;
+  order['timeStamp'] = ts;
+  orderArray.push(order);
+
+  jsonfile.writeFile(somFile, orderArray, function (err) {
+    if (err)
+      res.send({ 'order': { 'result': 'error', 'error': err } });
+    else
+      res.render('order', { title: 'DLMS Provisioning Back End', orders: orderArray });
+  });
+});
+
+router.post('/ack', function (req, res, next) {
+  var checked = req.body;
+  var newArray = [];
+  
+  for (key in checked) 
+    for (var i = 0; i < orderArray.length; i++)
+      if (orderArray[i].orderId !== key) 
+        newArray.push(orderArray[i])
+
+  jsonfile.writeFile(somFile, newArray, function (err) {
+    if (err)
+      res.render({ 'error': { title: 'DLMS Provisioning Back End', 'error': err } });
+    else
+      res.render('order', { title: 'DLMS Provisioning Back End', orders: newArray });
+  });  
+
 });
 
 module.exports = router;

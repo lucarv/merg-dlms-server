@@ -41,3 +41,8 @@ body {
     padding-right: 10px;
     width: 400px !important;    
 }
+
+.vertical-center {
+    vertical-align: middle !important;
+    float: none;
+}         

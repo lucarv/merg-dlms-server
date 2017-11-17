@@ -4,7 +4,7 @@ block content
         .panel.panel-default
             .panel-heading Order Management
             .panel-body    
-                form(action='/order_mgmt', method='post')
+                form(action='/order_mgmt/web', method='post')
                     fieldset
                         .form-group.row
                             .col-xs-6    
@@ -18,18 +18,30 @@ block content
                            .col-sm-2
                                 button.btn.btn-primary(type='submit') create new
         .panel.panel-default
-            .panel-heading Properties
-            .panel-body    
-                table.table.table-hover.table-bordered
-                    thead.thead-inverse
-                        tr
-                            th Agent Id                        
-                            th Order Id 
-                            th Order Summary
-                    tbody
-                        each order in orders
-                            tr
-                                td= order.agentId 
-                                td= order.orderId 
-                                td= order.orderSummary  
+            .panel-heading Alerts
+            .panel-body
+                   form(action='/order_mgmt/ack', method='post')
+                        table.table.table-hover.table-bordered
+                            thead.thead-inverse
+                                tr
+                                    th Agent Id                        
+                                    th Order Id 
+                                    th Order Summary
+                                    th Incoming Timestamp
+                                    th Complete
+                            tbody
+                                    each order in orders
+                                        tr
+                                            td.vertical-center= order.agentId 
+                                            td.vertical-center= order.orderId 
+                                            td.vertical-center= order.orderSummary
+                                            td.vertical-center= order.timeStamp  
+                                            td.vertical-center
+                                                .checkbox
+                                                    label.vertical-center
+                                                    input(type='checkbox', name=order.orderId value="yes")
+                        button.btn.btn-primary(type='submit') submit
+                
+ 
+  
         
