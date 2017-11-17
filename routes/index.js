@@ -30,30 +30,27 @@ function printDeviceInfo(err, deviceInfo, res) {
 }
 
 function setDeviceCS(deviceId, key){
-    hubName = hub_cs.substring(hub_cs.indexOf('=') + 1, hub_cs.indexOf(';'));
+    var hubName = hub_cs.substring(hub_cs.indexOf('=') + 1, hub_cs.indexOf(';'));
     var devCS = 'HostName=' + hubName + ';DeviceId=' + deviceId + ';SharedAccessKey=' + key;
 	return devCS;
 }
-/* GET home page. */
+
+// ------ EXPRESS ROUTING ------ 
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'DLMS Provisioning Back End' });
 });
 
 router.post('/', function (req, res, next) {
-
   var meterId = req.body.meterId;
   var device = {
     deviceId: meterId
   }
 
   registry.create(device, function (err, deviceInfo, result) {
-    res.setHeader('Content-Type', 'application/json');
-    
+    res.setHeader('Content-Type', 'application/json');   
     if (err)
       registry.get(device.deviceId, printDeviceInfo);
-
     var devKey;
-
     if (deviceInfo) {
       devKey = deviceInfo.authentication.symmetricKey.primaryKey;
 	  var cs = setDeviceCS(meterId, devKey);
