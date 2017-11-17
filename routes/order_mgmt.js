@@ -6,6 +6,7 @@ var somFile = 'som.json';
 var agentFile = 'agent.json';
 
 var orderArray = [], agentArray = [];
+var agentId = null;
 
 var twilio = require('twilio');
 var accountSid = 'AC32f7569dbb30616afb3189b17099e548'; // Your Account SID from www.twilio.com/console
@@ -70,37 +71,25 @@ router.get('/', function (req, res, next) {
   }
 });
 
-/* POST service order. */
+/* POST service order from DLMS Proxy. */
 router.post('/', function (req, res, next) {
   var order = {};
-
   var str = JSON.stringify(req.body)
-  console.log(' <<<stringify post parsing >>>');
-  console.log(str);
-
   //regexp to 'clean' the request
   str = str.replace(/\\/g, "");
   str = str.replace(/{"{/g, "{");
   str = str.replace(/":""}/g, "");
-  var cleanParams = JSON.parse(str)
-  console.log('<<< received agentId >>>');
-  console.log(cleanParams.agentId);
-
+  var cleanParams = JSON.parse(str);
 
   order['agentId'] = cleanParams.agentId;
   order['orderId'] = cleanParams.orderId;
   order['orderSummary'] = cleanParams.orderSummary;
-
-  console.log(' <<<order object>>>');
-  console.log(order);
-  /*
+  /* this is the code if the other side is not dotnet
  order['agentId'] = req.body.agentId;
  order['orderId'] = req.body.orderId;
  order['orderSummary'] = req.body.orderSummary;
  */
   orderArray.push(order);
-
-
   var alert = alertAgent(order);
   if (alert === 'found') {
     jsonfile.writeFile(somFile, orderArray, function (err) {
@@ -120,8 +109,6 @@ router.post('/web', function (req, res, next) {
   var order = {};
 
   var str = JSON.stringify(req.body)
-  console.log(' <<<stringify post parsing >>>');
-  console.log(str);
   var ts = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
 
   order['agentId'] = req.body.agentId;
@@ -140,20 +127,33 @@ router.post('/web', function (req, res, next) {
 
 router.post('/ack', function (req, res, next) {
   var checked = req.body;
-  var newArray = [];
-  
-  for (key in checked) 
-    for (var i = 0; i < orderArray.length; i++)
-      if (orderArray[i].orderId !== key) 
-        newArray.push(orderArray[i])
 
-  jsonfile.writeFile(somFile, newArray, function (err) {
+  var render = 'order';
+  if (agentId)
+    render = 'ag_order';
+
+  for (key in checked)
+    for (var i = 0; i < orderArray.length; i++)
+      if (orderArray[i].orderId == key)
+        orderArray.splice(i, 1);
+
+  jsonfile.writeFile(somFile, orderArray, function (err) {
     if (err)
       res.render({ 'error': { title: 'DLMS Provisioning Back End', 'error': err } });
     else
-      res.render('order', { title: 'DLMS Provisioning Back End', orders: newArray });
-  });  
-
+      res.render(render, { title: 'DLMS Provisioning Back End', orders: orderArray });
+  });
 });
+
+router.post('/signin', function (req, res, next) {
+  agentId = req.body.agentId;
+  var tempOrder = []
+  // select orders for this agent
+  for (var i = 0; i < orderArray.length; i++)
+    if (orderArray[i].agentId == agentId)
+      tempOrder.push(orderArray[i]);
+
+  res.render('ag_order', { title: 'DLMS Provisioning Back End', orders: tempOrder });
+})
 
 module.exports = router;

@@ -40,6 +40,14 @@ router.get('/', function (req, res, next) {
   res.render('index', { title: 'DLMS Provisioning Back End' });
 });
 
+router.get('/agt_start', function (req, res, next) {
+  res.render('agt_index', { title: 'DLMS Provisioning Back End' });
+});
+
+router.get('/mgmt_start', function (req, res, next) {
+res.render('mgr_index', { title: 'DLMS Provisioning Back End' });
+});
+
 router.post('/', function (req, res, next) {
   var meterId = req.body.meterId;
   var device = {

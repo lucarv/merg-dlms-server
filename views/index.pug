@@ -1,12 +1,14 @@
-extends layout
+extends basic
 
-block content
-        .panel.panel-default
-          .panel-heading #{title}
-          .panel-body   
-              h3 a very simple 
-              p management interface tool for the dlms demo
-              h3 use this to:
-              li add agents to the fleet to use sms notification 
-              li add order management tasks
+block content 
+  .panel.panel-default
+    .panel-heading DLMS Provisioning
+    .panel-body    
+        h4
+          a(href='/agt_start') AGENT  
+        h4
+          a(href='/mgmt_start') MANAGEMENT  
+        
+
+          
 

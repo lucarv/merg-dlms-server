@@ -41,6 +41,8 @@ var log = bunyan.createLogger({
   });
 
 var index = require('./routes/index');
+var roles = require('./routes/roles');
+
 var order_mgmt = require('./routes/order_mgmt');
 var agent = require('./routes/agent');
 
@@ -59,6 +61,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
+app.use('/roles', roles);
 app.use('/order_mgmt', order_mgmt);
 app.use('/agent', agent);
 

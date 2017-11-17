@@ -1,0 +1,26 @@
+extends basic
+
+block content 
+    .panel.panel-default
+        .panel-heading Manage Alerts
+        .panel-body
+            form(action='/order_mgmt/ack', method='post')
+                table.table.table-hover.table-bordered
+                    thead.thead-inverse
+                        tr
+                            th Order Id 
+                            th Order Summary
+                            th Incoming Timestamp
+                            th Complete
+                    tbody
+                        each order in orders
+                            tr
+                                td.vertical-center= order.orderId 
+                                td.vertical-center= order.orderSummary
+                                td.vertical-center= order.timeStamp  
+                                td.vertical-center
+                                    .checkbox
+                                        label.vertical-center
+                                        input(type='checkbox', name=order.orderId value="yes")
+                button.btn.btn-primary(type='submit') submit
+                
