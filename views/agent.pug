@@ -24,12 +24,12 @@ block content
                 table.table.table-hover.table-bordered
                     thead
                         tr
-                            th Agent Id Name
+                            th Agent Id 
+                            th Agent Name
                             th Agent Phone Number
-                            th Agent Phone Name
                     tbody
                         each agent in agents
                             tr
                                 td= agent.agentId 
-                                td= agent.msisdn  
                                 td= agent.name  
+                                td= agent.msisdn  
