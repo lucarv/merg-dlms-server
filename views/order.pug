@@ -2,7 +2,7 @@ extends layout
 
 block content 
         .panel.panel-default
-            .panel-heading Order Management
+            .panel-heading Alerts Management
             .panel-body    
                 form(action='/order_mgmt/web', method='post')
                     fieldset
@@ -10,10 +10,10 @@ block content
                             .col-xs-6    
                                 input.form-control(type='number', name='agentId', placeholder='agent id') 
                             .col-xs-6  
-                                input.form-control(type="number" name='orderId', placeholder='order id') 
+                                input.form-control(type="number" name='orderId', placeholder='alert id') 
                         .form-group.row
                             .col-xs-12 
-                                input.form-control(type="text" name='orderSummary', placeholder='enter order details') 
+                                input.form-control(type="text" name='orderSummary', placeholder='enter alert details') 
                         .form-group.row
                            .col-sm-2
                                 button.btn.btn-primary(type='submit') create new

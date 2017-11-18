@@ -103,6 +103,9 @@ router.post('/', function (req, res, next) {
     res.send({ order: { 'result': 'error', 'error': alert } });
 });
 
+router.get('/web', function (req, res, next) {
+  res.render('order', { title: 'DLMS Provisioning Back End', orders: orderArray });
+});  
 
 /* POST service order. */
 router.post('/web', function (req, res, next) {

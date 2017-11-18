@@ -1,6 +1,8 @@
 extends basic
 block content
-    .container
+  .panel.panel-default
+    .panel-heading Agent Login
+    .panel-body    
       form.form-signin(action='/order_mgmt/signin', method='post')
         h2.form-signin-heading Please sign in
         label.sr-only(for='inputEmail') Email address
@@ -12,4 +14,3 @@ block content
             input(type='checkbox', value='remember-me')
             |  Remember me
         button.btn.btn-lg.btn-primary.btn-block(type='submit') Sign in
-    // /container
