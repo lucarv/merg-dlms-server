@@ -30,10 +30,10 @@ function printDeviceInfo(err, deviceInfo, res) {
   }
 }
 
-function setDeviceCS(deviceId, key){
-    var hubName = hub_cs.substring(hub_cs.indexOf('=') + 1, hub_cs.indexOf(';'));
-    var devCS = 'HostName=' + hubName + ';DeviceId=' + deviceId + ';SharedAccessKey=' + key;
-	return devCS;
+function setDeviceCS(deviceId, key) {
+  var hubName = hub_cs.substring(hub_cs.indexOf('=') + 1, hub_cs.indexOf(';'));
+  var devCS = 'HostName=' + hubName + ';DeviceId=' + deviceId + ';SharedAccessKey=' + key;
+  return devCS;
 }
 
 // ------ EXPRESS ROUTING ------ 
@@ -46,7 +46,7 @@ router.get('/agt_start', function (req, res, next) {
 });
 
 router.get('/mgmt_start', function (req, res, next) {
-res.render('mgr_index', { title: 'DLMS Provisioning Back End' });
+  res.render('mgr_index', { title: 'DLMS Provisioning Back End' });
 });
 
 router.post('/', function (req, res, next) {
@@ -54,62 +54,65 @@ router.post('/', function (req, res, next) {
   var device = {
     deviceId: meterId
   }
+  /*
+    registry.create(device, function (err, deviceInfo, result) {
+      res.setHeader('Content-Type', 'application/json');   
+      if (err)
+        registry.get(device.deviceId, printDeviceInfo);
+      var devKey;
+      if (deviceInfo) {
+        devKey = deviceInfo.authentication.symmetricKey.primaryKey;
+      var cs = setDeviceCS(meterId, devKey);
+        console.log('device created, devKey: ' + cs);
+  */
+  // save this device {id, key} to redis
 
-  registry.create(device, function (err, deviceInfo, result) {
-    res.setHeader('Content-Type', 'application/json');   
-    if (err)
-      registry.get(device.deviceId, printDeviceInfo);
-    var devKey;
-    if (deviceInfo) {
-      devKey = deviceInfo.authentication.symmetricKey.primaryKey;
-	  var cs = setDeviceCS(meterId, devKey);
-      console.log('device created, devKey: ' + cs);
+  redis_client.on('connect', function () {
+    console.log('connected to redis');
+  });
+  redis_client.set(meterId, cs, function (err, reply) {
+    if (err) {
+      console.log('error when writing to redis: ' + err);
+    } else {
+      console.log('wrote to redis: ' + reply);
+    }
+  });
 
-      // save this device {id, key} to redis
-      
-      redis_client.on('connect', function () {
-        console.log('connected to redis');
-      });
-      redis_client.set(meterId, cs, function (err, reply) {
-        if (err) {
-          console.log('error when writing to redis: ' + err);
-        } else {
-          console.log('wrote to redis: ' + reply);
-        }
-      });
-
-      // update DLMS proxy
-      var jsonData = {
-        "UniqueID": meterId,
-        "DeviceConnectionString": cs,
-        "DeviceIpAddress": ""
-      }
-      var options = {
-        url: url,
-        body: JSON.stringify(jsonData),
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      };
-      request(options, function (err, res, body) {
-        if (err) { //need to rollback IoT Hub Registry
-          console.log('Failed to update DLMS Proxy');
-        } else {
-          console.log('dlms proxy updated');
+  // update DLMS proxy
+  var jsonData = {
+    "UniqueID": meterId,
+    "DeviceConnectionString": cs,
+    "DeviceIpAddress": ""
+  }
+  var options = {
+    url: url,
+    body: JSON.stringify(jsonData),
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  };
+  request(options, function (err, res, body) {
+    if (err) { //need to rollback IoT Hub Registry
+      console.log('Failed to update DLMS Proxy');
+    } else {
+      console.log('dlms proxy updated');
     }
   });
 
   //send acknowledge to provisioning app
   var opRes = { 'result': 'meter ' + meterId + ' added to registry' }
-  console.log(opRes)
+  //console.log(opRes)
   res.send(JSON.stringify(opRes));
+
+  /*
 } else { //something wrong in the attempt to register to iot hub
     console.log('no key')
       var opRes = { 'result': 'error', 'cause': 'something fishy happened' }
       res.send(JSON.stringify(opRes));
   }
   });
+  */
 });
 
 router.delete('/', function (req, res, next) {
