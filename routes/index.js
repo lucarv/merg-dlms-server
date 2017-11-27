@@ -16,13 +16,14 @@ const hub_cs = config.hub_cs;
 const registry = iothub.Registry.fromConnectionString(hub_cs);
 
 // ------ REDIS SDK ------ 
+/*
 const redis = require('redis');
 const redis_client = redis.createClient(6380, config.redis_url,
   {
     auth_pass: config.redis_key,
     tls: { servername: config.redis_url }
   });
-
+*/
 function printDeviceInfo(err, deviceInfo, res) {
   if (deviceInfo) {
     var deviceKey = deviceInfo.authentication.symmetricKey.primaryKey;
@@ -65,6 +66,7 @@ router.post('/', function (req, res, next) {
       console.log('device created, devKey: ' + cs);
 
       // save this device {id, key} to redis
+      /*
       redis_client.on('connect', function () {
         console.log('connected to redis');
       });
@@ -75,7 +77,7 @@ router.post('/', function (req, res, next) {
           console.log('wrote to redis: ' + reply);
         }
       });
-
+*/
       // update DLMS proxy
       var jsonData = {
         "UniqueID": meterId,
@@ -121,9 +123,11 @@ router.delete('/', function (req, res, next) {
     if (!err) {
       var opRes = { 'result': 'meter ' + meterId + ' removed from registry' }
       // remove from redis
+      /*
       redis_client.del('meterId', function (err, reply) {
         console.log('deleted from redis: ' + reply);
       });
+      */
 
       res.send(JSON.stringify(opRes));
     } else {
