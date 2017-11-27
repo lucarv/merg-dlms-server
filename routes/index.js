@@ -81,9 +81,10 @@ router.post('/', function (req, res, next) {
   // update DLMS proxy
   var jsonData = {
     "UniqueID": meterId,
-    "DeviceConnectionString": cs,
+    "DeviceConnectionString": "nothinghere",
     "DeviceIpAddress": ""
   }
+  console.log(jsonData)
   var options = {
     url: url,
     body: JSON.stringify(jsonData),
